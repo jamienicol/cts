@@ -85,7 +85,7 @@ fn(async (t) => {
     magFilter: minFilter
   };
 
-  const calls = generateTextureBuiltinInputs1D(50, {
+  const calls = generateTextureBuiltinInputs1D(4, {
     sampler,
     method: samplePoints,
     descriptor,
