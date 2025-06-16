@@ -5067,13 +5067,11 @@ stage)
     @builtin(vertex_index) vertex_index : u32,
     @builtin(instance_index) instance_index : u32) -> VOut {
   let positions = array(vec2f(-1, 3), vec2f(3, -1), vec2f(-1, -1));
-  return VOut(vec4f(positions[vertex_index], 0, 1), instance_index, ${returnType}(0));
+  return VOut(vec4f(positions[vertex_index], 0, 1));
 }
 
 @fragment fn fsFragment(v: VOut) -> @location(0) vec4u {
-  // ${derivativeBaseWGSL}
-  // return bitcast<vec4u>(getResult(v.ndx, derivativeBase));
-  return vec4u(bitcast<u32>(v.pos.x), v.ndx, textureDimensions(T), bitcast<u32>(f32(v.pos.x - 0.5 - f32(v.ndx)) / f32(textureDimensions(T))));
+  return vec4u(bitcast<u32>(v.pos.x), textureDimensions(T), 0, 0);
 }
 ` :
   `
@@ -5094,19 +5092,11 @@ ${dataFields}
 
 struct VOut {
   @builtin(position) pos: vec4f,
-  @location(0) @interpolate(flat, either) ndx: u32,
-  @location(1) @interpolate(flat, either) result: ${returnType},
 };
 
 @group(0) @binding(0) var          T    : ${textureType};
 ${sampler ? `@group(0) @binding(1) var          S    : ${samplerType}` : ''};
 @group(0) @binding(2) var<uniform> data : Data;
-
-fn getResult(idx: u32, derivativeBase: ${derivativeType}) -> ${returnType} {
-  var result : ${resultType};
-${body}
-  return ${returnType}(result);
-}
 
 ${stageWGSL}
 `;
@@ -5316,7 +5306,10 @@ ${stageWGSL}
       pass.setPipeline(pipeline);
       pass.setBindGroup(0, bindGroup0);
       // for (let i = 0; i < calls.length; ++i) {
-        pass.setViewport(2, 0, 2, 2, 0, 1);
+        pass.setViewport(0, 0, 1, 1, 0, 1);
+        pass.draw(3, 1, 0, 0);
+
+        pass.setViewport(3, 0, 1, 1, 0, 1);
         pass.draw(3, 1, 0, 0);
       // }
       pass.end();
@@ -5339,7 +5332,7 @@ ${stageWGSL}
     for (let i = 0; i < resultsF32.length; i += 4) {
       let sliceF32 = resultsF32.slice(i, i + 4);
       let sliceU32 = resultsU32.slice(i, i + 4);
-      console.log(`pos: ${sliceF32[0]}, ndx: ${sliceU32[1]}, dim: ${sliceU32[2]}, derivBase: ${sliceF32[3]}`);
+      console.log(`pos: ${sliceF32[0]}, dim: ${sliceU32[1]}`);
     }
     const view = TexelView.fromTextureDataByReference(
       resultFormat,
