@@ -4985,7 +4985,8 @@ stage)
   {
     let is_active = (idx >= ${callCount}) & (idx < ${callCount + binCalls.length});
     let args = data.args${binIdx}[idx - ${callCount}];
-    let call = ${b.expr};
+    //let call = ${b.expr};
+    let call = vec4(args.coords, derivativeBase, args.derivativeMult, args.coords + derivativeBase * args.derivativeMult);
     result = select(result, call, is_active);
   }
 `;
@@ -5330,7 +5331,12 @@ ${stageWGSL}
     t.device.queue.submit([encoder.finish()]);
 
     await resultBuffer.mapAsync(GPUMapMode.READ);
-
+    let results = new Float32Array(resultBuffer.getMappedRange());
+    console.log(`results len ${results.length}`);
+    console.log("results:");
+    for (let i = 0; i < results.length; i += 4) {
+      console.log(results.slice(i, i + 4));
+    }
     const view = TexelView.fromTextureDataByReference(
       resultFormat,
       new Uint8Array(resultBuffer.getMappedRange()),
