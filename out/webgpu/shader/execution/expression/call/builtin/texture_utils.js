@@ -5071,8 +5071,9 @@ stage)
 }
 
 @fragment fn fsFragment(v: VOut) -> @location(0) vec4u {
-  ${derivativeBaseWGSL}
-  return bitcast<vec4u>(getResult(v.ndx, derivativeBase));
+  // ${derivativeBaseWGSL}
+  // return bitcast<vec4u>(getResult(v.ndx, derivativeBase));
+  return vec4u(bitcast<u32>(v.pos.x), v.ndx, textureDimensions(T), bitcast<u32>(f32(v.pos.x - 0.5 - f32(v.ndx)) / f32(textureDimensions(T))));
 }
 ` :
   `
@@ -5331,11 +5332,14 @@ ${stageWGSL}
     t.device.queue.submit([encoder.finish()]);
 
     await resultBuffer.mapAsync(GPUMapMode.READ);
-    let results = new Float32Array(resultBuffer.getMappedRange());
-    console.log(`results len ${results.length}`);
+    let resultsF32 = new Float32Array(resultBuffer.getMappedRange());
+    let resultsU32 = new Uint32Array(resultBuffer.getMappedRange());
+    console.log(`results len ${resultsF32.length}`);
     console.log("results:");
-    for (let i = 0; i < results.length; i += 4) {
-      console.log(results.slice(i, i + 4));
+    for (let i = 0; i < resultsF32.length; i += 4) {
+      let sliceF32 = resultsF32.slice(i, i + 4);
+      let sliceU32 = resultsU32.slice(i, i + 4);
+      console.log(`pos: ${sliceF32[0]}, ndx: ${sliceU32[1]}, dim: ${sliceU32[2]}, derivBase: ${sliceF32[3]}`);
     }
     const view = TexelView.fromTextureDataByReference(
       resultFormat,
