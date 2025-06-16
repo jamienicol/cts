@@ -5084,19 +5084,11 @@ stage)
 `;
 
   const code = `
-${structs}
-
-struct Data {
-${dataFields}
-}
-
 struct VOut {
   @builtin(position) pos: vec4f,
 };
 
 @group(0) @binding(0) var          T    : ${textureType};
-${sampler ? `@group(0) @binding(1) var          S    : ${samplerType}` : ''};
-@group(0) @binding(2) var<uniform> data : Data;
 
 ${stageWGSL}
 `;
