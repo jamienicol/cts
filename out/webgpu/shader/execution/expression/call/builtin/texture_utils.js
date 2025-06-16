@@ -5315,10 +5315,10 @@ ${stageWGSL}
 
       pass.setPipeline(pipeline);
       pass.setBindGroup(0, bindGroup0);
-      for (let i = 0; i < calls.length; ++i) {
-        pass.setViewport(i, 0, 1, 1, 0, 1);
-        pass.draw(3, 1, 0, i);
-      }
+      // for (let i = 0; i < calls.length; ++i) {
+        pass.setViewport(0, 0, 1, 1, 0, 1);
+        pass.draw(3, 1, 0, 1);
+      // }
       pass.end();
       encoder.copyTextureToBuffer(
         { texture: renderTarget },
